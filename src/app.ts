@@ -1,6 +1,9 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import { userRoutes } from "./routes/user.routes";
+import { blogRouter } from "./routes/blog.routes";
+import { productRouter } from "./routes/product.routes";
 
 dotenv.config();
 
@@ -8,6 +11,10 @@ const app = express();
 app.use(express.json());
 
 // routes
+
+app.use("/api/user", userRoutes);
+app.use("/api/blog", blogRouter);
+app.use("/api/product", productRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API is running...");
