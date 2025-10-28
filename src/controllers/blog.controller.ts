@@ -4,16 +4,16 @@ import { Blog } from "../models/Blog";
 const createBlog = async (req: Request, res: Response) => {
   const { title, content, author, coverImage, tags, category } = req.body;
 
-  const createSlug = (title: string): string => {
-    return title
-      .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^\w\-]+/g, "")
-      .replace(/\-\-+/g, "-")
-      .trim();
-  };
-
   try {
+    const coverImage = (req.file as any)?.path;
+    const createSlug = (title: string): string => {
+      return title
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^\w\-]+/g, "")
+        .replace(/\-\-+/g, "-")
+        .trim();
+    };
     const newBlog = new Blog({
       title,
       slug: createSlug(title),
