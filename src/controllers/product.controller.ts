@@ -11,6 +11,19 @@ const getAllProducts = async (req: Request, res: Response) => {
   }
 };
 
+const getProductById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching product", error });
+  }
+};
+
 const createProduct = async (req: Request, res: Response) => {
   try {
     const {
@@ -63,7 +76,74 @@ const createProduct = async (req: Request, res: Response) => {
     });
   }
 };
+
+const updateProduct = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      category,
+      brandName,
+      productName,
+      productDetails,
+      moq,
+      costOfGoods,
+      sampleCost,
+      shipToUsa,
+      asin,
+    } = req.body;
+
+    const files = req.files as Express.Multer.File[];
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (files && files.length > 0) {
+      const pictureUrls = files.map((file) => (file as any).path);
+      product.pictures = pictureUrls;
+    }
+
+    product.category = category;
+    product.brandName = brandName;
+    product.productName = productName;
+    product.productDetails = productDetails;
+    product.moq = moq;
+    product.costOfGoods = costOfGoods;
+    product.sampleCost = sampleCost;
+    product.shipToUsa = shipToUsa;
+    product.asin = asin;
+
+    await product.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Product updated successfully",
+      product,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error updating product",
+      error,
+    });
+  }
+};
+
+const deleteProduct = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await Product.findByIdAndDelete(id);
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting product", error });
+  }
+};
+
 export const productController = {
   getAllProducts,
   createProduct,
+  updateProduct,
+  getProductById,
+  deleteProduct,
 };

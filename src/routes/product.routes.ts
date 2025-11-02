@@ -5,6 +5,13 @@ import { upload } from "../middlewares/multer.middlewares";
 const router = Router();
 
 router.get("/all-products", productController.getAllProducts);
+router.get("/get/:id", productController.getProductById);
+router.delete("/delete/:id", productController.deleteProduct);
+router.patch(
+  "/update/:id",
+  upload.array("pictures", 10),
+  productController.updateProduct
+);
 router.post(
   "/create",
   upload.array("pictures", 10),
