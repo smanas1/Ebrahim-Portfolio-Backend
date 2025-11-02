@@ -90,6 +90,7 @@ const updateProduct = async (req: Request, res: Response) => {
       sampleCost,
       shipToUsa,
       asin,
+      existingPictures, // This will hold the existing pictures to keep
     } = req.body;
 
     const files = req.files as Express.Multer.File[];
@@ -99,11 +100,26 @@ const updateProduct = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    if (files && files.length > 0) {
-      const pictureUrls = files.map((file) => (file as any).path);
-      product.pictures = pictureUrls;
+    // Initialize pictures array with existing pictures
+    let updatedPictures = [...(product.pictures || [])];
+
+    // If existingPictures was sent from frontend, use it to filter existing pictures
+    if (existingPictures) {
+      try {
+        const existingPicturesArray = JSON.parse(existingPictures);
+        updatedPictures = updatedPictures.filter(picture => existingPicturesArray.includes(picture));
+      } catch (e) {
+        console.log('Could not parse existingPictures, proceeding with all existing pictures');
+      }
     }
 
+    // Add new images if any were uploaded
+    if (files && files.length > 0) {
+      const newPictureUrls = files.map((file) => (file as any).path);
+      updatedPictures = [...updatedPictures, ...newPictureUrls];
+    }
+
+    product.pictures = updatedPictures;
     product.category = category;
     product.brandName = brandName;
     product.productName = productName;
