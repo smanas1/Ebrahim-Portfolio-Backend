@@ -8,7 +8,6 @@ export interface IBlog extends Document {
   coverImage?: string;
   tags?: string[];
   category?: string;
-  isPublished: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -46,10 +45,7 @@ const blogSchema = new Schema<IBlog>(
     category: {
       type: String,
     },
-    isPublished: {
-      type: Boolean,
-      default: false,
-    },
+
   },
   { timestamps: true }
 );
