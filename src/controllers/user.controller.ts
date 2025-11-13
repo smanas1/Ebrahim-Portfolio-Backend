@@ -3,6 +3,10 @@ import { User } from "../models/User";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+interface AuthRequest extends Request {
+  user?: any;
+}
+
 const registerUser = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
@@ -66,7 +70,7 @@ const loginUser = async (req: Request, res: Response) => {
   }
 };
 
-const getAllUsers = async (req: Request, res: Response) => {
+const getAllUsers = async (req: AuthRequest, res: Response) => {
   try {
     const users = await User.find({}).select("-password"); // Exclude password field
     res.status(200).json(users);
@@ -75,7 +79,7 @@ const getAllUsers = async (req: Request, res: Response) => {
   }
 };
 
-const getUserById = async (req: Request, res: Response) => {
+const getUserById = async (req: AuthRequest, res: Response) => {
   try {
     const user = await User.findById(req.params.id).select("-password"); // Exclude password field
     if (!user) {
@@ -87,12 +91,33 @@ const getUserById = async (req: Request, res: Response) => {
   }
 };
 
-const updateUser = async (req: Request, res: Response) => {
+const updateUser = async (req: AuthRequest, res: Response) => {
   try {
     const { name, email, role } = req.body;
+
+    // Check if trying to update another user's role
+    if (role && req.user && req.params.id !== req.user._id.toString()) {
+      // Only admin can update another user's role
+      if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: "Only admin users can update other users' roles" });
+      }
+    }
+
+    // Only allow role updates for admin users (when updating any user)
+    if (role && req.user && req.user.role !== 'admin') {
+      return res.status(403).json({ message: "Only admin users can update user roles" });
+    }
+
+    const updateData: any = { name, email };
+
+    // Only add role to update if it's provided
+    if (role !== undefined) { // Check if role is provided in the request
+      updateData.role = role;
+    }
+
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { name, email, role },
+      updateData,
       { new: true, runValidators: true }
     ).select("-password"); // Exclude password field
 
@@ -109,7 +134,7 @@ const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-const deleteUser = async (req: Request, res: Response) => {
+const deleteUser = async (req: AuthRequest, res: Response) => {
   try {
     const deletedUser = await User.findByIdAndDelete(req.params.id).select("-password");
     if (!deletedUser) {
