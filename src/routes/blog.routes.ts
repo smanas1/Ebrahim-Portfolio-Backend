@@ -1,13 +1,13 @@
 import { Router } from "express";
 import { blogController } from "../controllers/blog.controller";
-import { upload } from "../middlewares/multer.middlewares";
+import { getUploadMiddleware } from "../middlewares/multer.middlewares";
 import { verifyToken, requireAdmin, requireAdminOrModerator } from "../middlewares/auth.middleware";
 
 const router = Router();
 
 // Protected routes - require authentication
-router.post("/create", verifyToken, requireAdminOrModerator, upload.single("coverImage"), blogController.createBlog);
-router.patch("/update/:id", verifyToken, requireAdminOrModerator, upload.single("coverImage"), blogController.updateBlog);
+router.post("/create", verifyToken, requireAdminOrModerator, getUploadMiddleware('blog').single("coverImage"), blogController.createBlog);
+router.patch("/update/:id", verifyToken, requireAdminOrModerator, getUploadMiddleware('blog').single("coverImage"), blogController.updateBlog);
 router.delete("/:id", verifyToken, requireAdminOrModerator, blogController.deleteBlog);
 
 // Public routes

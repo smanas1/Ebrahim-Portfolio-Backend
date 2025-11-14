@@ -46,7 +46,8 @@ const createProduct = async (req: Request, res: Response) => {
         .json({ message: "At least one product picture is required" });
     }
 
-    const pictureUrls = files.map((file) => (file as any).path);
+    // CloudinaryStorage adds the secure_url property to files
+    const pictureUrls = files.map((file) => file.path || file.secure_url);
 
     const product = new Product({
       category,
@@ -118,7 +119,7 @@ const updateProduct = async (req: Request, res: Response) => {
 
     // Add new images if any were uploaded
     if (files && files.length > 0) {
-      const newPictureUrls = files.map((file) => (file as any).path);
+      const newPictureUrls = files.map((file) => file.path || file.secure_url);
       updatedPictures = [...updatedPictures, ...newPictureUrls];
     }
 

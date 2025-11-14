@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { productController } from "../controllers/product.controller";
-import { upload } from "../middlewares/multer.middlewares";
+import { getUploadMiddleware } from "../middlewares/multer.middlewares";
 import { verifyToken, requireAdmin, requireAdminOrModerator } from "../middlewares/auth.middleware";
 
 const router = Router();
@@ -8,16 +8,16 @@ const router = Router();
 // Protected routes - require authentication
 router.post(
   "/create",
-  verifyToken, 
+  verifyToken,
   requireAdminOrModerator,
-  upload.array("pictures", 10),
+  getUploadMiddleware('product').array("pictures", 10),
   productController.createProduct
 );
 router.patch(
   "/update/:id",
   verifyToken,
   requireAdminOrModerator,
-  upload.array("pictures", 10),
+  getUploadMiddleware('product').array("pictures", 10),
   productController.updateProduct
 );
 router.delete("/delete/:id", verifyToken, requireAdminOrModerator, productController.deleteProduct);
