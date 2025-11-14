@@ -47,7 +47,9 @@ const createProduct = async (req: Request, res: Response) => {
     }
 
     // CloudinaryStorage adds the secure_url property to files
-    const pictureUrls = files.map((file) => file.path || file.secure_url);
+    const pictureUrls = files
+      .map((file) => file.path || file.secure_url)
+      .filter((url): url is string => url !== undefined);
 
     const product = new Product({
       category,
@@ -119,7 +121,9 @@ const updateProduct = async (req: Request, res: Response) => {
 
     // Add new images if any were uploaded
     if (files && files.length > 0) {
-      const newPictureUrls = files.map((file) => file.path || file.secure_url);
+      const newPictureUrls = files
+        .map((file) => file.path || file.secure_url)
+        .filter((url): url is string => url !== undefined);
       updatedPictures = [...updatedPictures, ...newPictureUrls];
     }
 

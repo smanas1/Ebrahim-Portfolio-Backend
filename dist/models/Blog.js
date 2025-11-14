@@ -34,9 +34,5 @@ const blogSchema = new mongoose_1.Schema({
     category: {
         type: String,
     },
-    isPublished: {
-        type: Boolean,
-        default: false,
-    },
 }, { timestamps: true });
 exports.Blog = (0, mongoose_1.model)("Blog", blogSchema);
