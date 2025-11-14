@@ -100,6 +100,9 @@ const updateProduct = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
+    // Store old pictures to potentially delete them from Cloudinary
+    const oldPictures = [...(product.pictures || [])];
+    
     // Initialize pictures array with existing pictures
     let updatedPictures = [...(product.pictures || [])];
 
@@ -117,6 +120,27 @@ const updateProduct = async (req: Request, res: Response) => {
     if (files && files.length > 0) {
       const newPictureUrls = files.map((file) => (file as any).path);
       updatedPictures = [...updatedPictures, ...newPictureUrls];
+    }
+
+    // Determine which pictures were removed (in old but not in updated)
+    const picturesToDelete = oldPictures.filter(pic => !updatedPictures.includes(pic));
+
+    // Delete removed pictures from Cloudinary
+    if (picturesToDelete.length > 0) {
+      for (const pictureUrl of picturesToDelete) {
+        try {
+          // Extract public ID from the Cloudinary URL
+          const urlParts = pictureUrl.split('/');
+          const publicIdWithExt = urlParts[urlParts.length - 1];
+          const publicId = publicIdWithExt.split('.')[0]; // Remove file extension
+          
+          // Delete image from Cloudinary
+          await cloudinary.uploader.destroy(publicId);
+        } catch (deleteErr) {
+          console.error('Error deleting image from Cloudinary:', deleteErr);
+          // Continue with product update even if image deletion fails
+        }
+      }
     }
 
     product.pictures = updatedPictures;
@@ -149,8 +173,35 @@ const updateProduct = async (req: Request, res: Response) => {
 const deleteProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    
+    // Find the product to get image URLs before deletion
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Delete images from Cloudinary if they exist
+    if (product.pictures && product.pictures.length > 0) {
+      for (const pictureUrl of product.pictures) {
+        try {
+          // Extract public ID from the Cloudinary URL
+          // Assuming Cloudinary URLs follow the format: https://res.cloudinary.com/.../upload/.../public_id.ext
+          const urlParts = pictureUrl.split('/');
+          const publicIdWithExt = urlParts[urlParts.length - 1];
+          const publicId = publicIdWithExt.split('.')[0]; // Remove file extension
+          
+          // Delete image from Cloudinary
+          await cloudinary.uploader.destroy(publicId);
+        } catch (deleteErr) {
+          console.error('Error deleting image from Cloudinary:', deleteErr);
+          // Continue with product deletion even if image deletion fails
+        }
+      }
+    }
+
+    // Now delete the product document from database
     await Product.findByIdAndDelete(id);
-    res.status(200).json({ message: "Product deleted successfully" });
+    res.status(200).json({ message: "Product and associated images deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting product", error });
   }

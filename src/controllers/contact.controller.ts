@@ -25,16 +25,16 @@ export const sendContactEmail = async (req: Request, res: Response) => {
     // Define the email options
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: "ebrahimmdkamal@outlook.com",
-      replyTo: email,
+      to: process.env.EMAIL_USER, // Send to your own email address
+      replyTo: email, // User's email as reply-to
       subject: `Contact Form: ${subject}`,
       html: `
-        <<div style="font-family: 'Inter', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 30px; border: 1px solid #e5e7eb;">
-  
+        <div style="font-family: 'Inter', Arial, sans-serif; max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 30px; border: 1px solid #e5e7eb;">
+
   <!-- Header -->
   <div style="text-align: center; margin-bottom: 25px;">
     <h2 style="margin: 0; font-size: 24px; color: #111827;">📩 New Contact Form Submission</h2>
-    <p style="margin: 5px 0 0; font-size: 14px; color: #6b7280;">You’ve received a new message from your website</p>
+    <p style="margin: 5px 0 0; font-size: 14px; color: #6b7280;">You've received a new message from your website</p>
   </div>
 
   <!-- Content Box -->
@@ -55,7 +55,6 @@ export const sendContactEmail = async (req: Request, res: Response) => {
   </p>
 
 </div>
-
       `,
     };
 
